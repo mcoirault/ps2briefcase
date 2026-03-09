@@ -17,13 +17,13 @@ jobs:
         os:
           - name: ubuntu
             version: ubuntu-latest
-            executable: briefcase
+            executable: ps2briefcase
           - name: macos
             version: macos-latest
-            executable: briefcase
+            executable: ps2briefcase
           - name: windows
             version: windows-latest
-            executable: briefcase.exe
+            executable: ps2briefcase.exe
     runs-on: ${{matrix.os.version}}
     
     steps:
@@ -39,5 +39,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: briefcase-${{matrix.os.name}}
+        name: ps2briefcase-${{matrix.os.name}}
         path: target/release/${{matrix.os.executable}}
