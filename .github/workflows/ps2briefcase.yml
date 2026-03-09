@@ -17,13 +17,13 @@ jobs:
         os:
           - name: ubuntu
             version: ubuntu-latest
-            executable: suitcase
+            executable: briefcase
           - name: macos
             version: macos-latest
-            executable: suitcase
+            executable: briefcase
           - name: windows
             version: windows-latest
-            executable: suitcase.exe
+            executable: briefcase.exe
     runs-on: ${{matrix.os.version}}
     
     steps:
