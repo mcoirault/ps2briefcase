@@ -1,0 +1,8 @@
+[package]
+name = "ps2briefcase"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.60", features = ["derive"] }
+ps2-filetypes = { path = "./ps2suitcase/crates/ps2-filetypes" }

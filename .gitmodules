@@ -1,0 +1,3 @@
+[submodule "ps2suitcase"]
+	path = ps2suitcase
+	url = https://github.com/ps2store/ps2suitcase.git
