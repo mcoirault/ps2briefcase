@@ -10,7 +10,7 @@ struct Args {
     file: String,
 
     #[arg(long)]
-    title: Option<String>,
+    title1: Option<String>,
 
     #[arg(long)]
     icon_list: Option<String>,
@@ -49,13 +49,15 @@ fn main() {
 }
 
 fn apply_arguments(args: Args, icon_sys: &mut IconSys) {
-    if let Some(title) = args.title {
-        icon_sys.title = title;
+    if let Some(title1) = args.title1 {
+        icon_sys.title_line1 = title1;
     }
 }
 
 fn print_icon_sys(sys: IconSys) {
-    println!("Title: {}", sys.title);
+    println!("Title:");
+    println!("{}", sys.title_line1);
+    println!("{}", sys.title_line2);
     println!("Flags: {:#02X}", sys.flags);
     println!("-----");
     println!("Icon Files");
