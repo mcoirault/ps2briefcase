@@ -27,11 +27,9 @@ jobs:
     runs-on: ${{matrix.os.version}}
     
     steps:
-    - uses: actions/checkout@v4
-    - name: Git Submodule Update
-      run: |
-        git pull --recurse-submodules
-        git submodule update --remote --recursive
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'true'
     - run: rustup toolchain install stable --profile minimal
     - uses: Swatinem/rust-cache@v2
     - name: Build
