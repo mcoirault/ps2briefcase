@@ -10,15 +10,16 @@ use clap::Parser;
         Exit Codes:\n\
         0 -> no error\n\
         1 -> provided [OPTIONS] failed validation\n\
-        2 -> <FILE PATH> invalid\n\
-        3 -> provided <FILE PATH> is not a valid PS2 .sys file\n\
+        2 -> <FILE> invalid\n\
+        3 -> provided <FILE> is not a valid PS2 .sys file\n\
+        4 -> failed to save the <FILE>\n\
         \n\
         Example Use: ps2briefcase.exe --title1 \"foo bar\" --transparency 55 --ambient-color \"#123ABC\" --light3-z 0.23 icon.sys\
         ",
     arg_required_else_help(true)
 )]
 pub(crate) struct Args {
-    #[arg(value_name = "FILE PATH", help = "The path to a .sys file")]
+    #[arg(value_name = "FILE", help = "The path to a .sys file")]
     pub(crate) file: String,
 
     #[arg(

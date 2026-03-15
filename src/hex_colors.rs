@@ -16,10 +16,6 @@ pub trait HexColors {
     fn to_hex(&self) -> String;
 
     fn update_from_hex(&mut self, hex_code: String);
-
-    fn is_hexcode(text: String) -> bool {
-        Regex::new(r"#[0-9a-f]{6}").unwrap().is_match(&*text)
-    }
 }
 
 impl HexColors for Color {

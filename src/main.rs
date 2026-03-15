@@ -27,7 +27,7 @@ fn main() {
         exit(3)
     }
 
-    let mut icon_sys = IconSys::new(file_buffer.clone());
+    let mut icon_sys = IconSys::new(file_buffer);
 
     apply_arguments(args.clone(), &mut icon_sys);
 
