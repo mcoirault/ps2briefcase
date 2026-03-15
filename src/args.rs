@@ -14,7 +14,8 @@ use clap::Parser;
         3 -> provided <FILE PATH> is not a valid PS2 .sys file\n\
         \n\
         Example Use: ps2briefcase.exe --title1 \"foo bar\" --transparency 55 --ambient-color \"#123ABC\" --light3-z 0.23 icon.sys\
-        "
+        ",
+    arg_required_else_help(true)
 )]
 pub(crate) struct Args {
     #[arg(value_name = "FILE PATH", help = "The path to a .sys file")]
@@ -67,7 +68,7 @@ pub(crate) struct Args {
         value_name = "INT",
         help = "Transparency of the background, between 0 and 100"
     )]
-    pub(crate) transparency: Option<u8>,
+    pub(crate) transparency: Option<u32>,
 
     #[arg(
         long,
