@@ -13,12 +13,12 @@ fn main() {
     let args = Args::parse();
 
     if !args.clone().validate() {
-        exit(1);
+        exit(2);
     }
 
     let file_buffer = std::fs::read(args.file.clone()).unwrap_or_else(|_| {
         println!("ERROR: Unable to read file {:?}", args.file);
-        exit(2)
+        exit(1)
     });
 
     // check that this is an actual .sys file related to the PS2
@@ -159,6 +159,7 @@ fn print_icon_sys(sys: IconSys) {
         );
     }
 }
+
 fn print_machine_readable_icon_sys(sys: IconSys) {
     println!("title1: {}", sys.title_line1);
     println!("title2: {}", sys.title_line2);

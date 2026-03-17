@@ -1,5 +1,6 @@
-use crate::hex_colors::HexCode;
+use crate::hex_colors::REGEX_PATTERN;
 use clap::Parser;
+use regex::Regex;
 
 #[derive(Parser, Debug, Clone)]
 #[command(
@@ -9,8 +10,8 @@ use clap::Parser;
         \n\
         Exit Codes:\n\
         0 -> no error\n\
-        1 -> provided [OPTIONS] failed validation\n\
-        2 -> <FILE> invalid\n\
+        1 -> <FILE> invalid\n\
+        2 -> provided [OPTIONS] failed validation\n\
         3 -> provided <FILE> is not a valid PS2 .sys file\n\
         4 -> failed to save the <FILE>\n\
         \n\
@@ -63,6 +64,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "The color of the ambient light applied to the 3d model of the icon"
     )]
     pub(crate) ambient_color: Option<String>,
@@ -70,6 +72,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "INT",
+        value_parser = is_valid_transparency,
         help = "Transparency of the background, between 0 and 100"
     )]
     pub(crate) transparency: Option<u32>,
@@ -77,6 +80,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Top left color of the background gradient"
     )]
     pub(crate) background_color1: Option<String>,
@@ -84,6 +88,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Top right color of the background gradient"
     )]
     pub(crate) background_color2: Option<String>,
@@ -91,6 +96,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Bottom left color of the background gradient"
     )]
     pub(crate) background_color3: Option<String>,
@@ -98,6 +104,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Bottom left color of the background gradient"
     )]
     pub(crate) background_color4: Option<String>,
@@ -105,6 +112,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Color of the first source of light"
     )]
     pub(crate) light1_color: Option<String>,
@@ -112,6 +120,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "X position of the first source of light, between 0 and 1"
     )]
     pub(crate) light1_x: Option<f32>,
@@ -119,6 +128,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Y position of the first source of light, between 0 and 1"
     )]
     pub(crate) light1_y: Option<f32>,
@@ -126,6 +136,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Z position of the first source of light, between 0 and 1"
     )]
     pub(crate) light1_z: Option<f32>,
@@ -133,6 +144,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Color of the second source of light"
     )]
     pub(crate) light2_color: Option<String>,
@@ -140,6 +152,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "X position of the second source of light, between 0 and 1"
     )]
     pub(crate) light2_x: Option<f32>,
@@ -147,6 +160,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Y position of the second source of light, between 0 and 1"
     )]
     pub(crate) light2_y: Option<f32>,
@@ -154,6 +168,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Z position of the second source of light, between 0 and 1"
     )]
     pub(crate) light2_z: Option<f32>,
@@ -161,6 +176,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "HEXCODE",
+        value_parser = is_hexcode,
         help = "Color of the third source of light"
     )]
     pub(crate) light3_color: Option<String>,
@@ -168,6 +184,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "X position of the third source of light, between 0 and 1"
     )]
     pub(crate) light3_x: Option<f32>,
@@ -175,6 +192,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Y position of the third source of light, between 0 and 1"
     )]
     pub(crate) light3_y: Option<f32>,
@@ -182,6 +200,7 @@ pub(crate) struct Args {
     #[arg(
         long,
         value_name = "FLOAT",
+        value_parser = is_coord,
         help = "Z position of the third source of light, between 0 and 1"
     )]
     pub(crate) light3_z: Option<f32>,
@@ -213,186 +232,6 @@ impl Args {
             is_valid = false;
         }
 
-        if let Some(ambient_color) = self.ambient_color
-            && !ambient_color.is_hexcode()
-        {
-            output = format!(
-                "{}  --ambient-color must be hex code, {:?} was provided\n",
-                output, ambient_color,
-            );
-            is_valid = false;
-        }
-
-        if let Some(transparency) = self.transparency
-            && transparency >= 100
-        {
-            output = format!(
-                "{}  --transparency must be between 0 and 100, {:?} was provided\n",
-                output, transparency,
-            );
-            is_valid = false;
-        }
-
-        if let Some(background_color1) = self.background_color1
-            && !background_color1.is_hexcode()
-        {
-            output = format!(
-                "{}  --background-color1 must be hex code, {:?} was provided\n",
-                output, background_color1,
-            );
-            is_valid = false;
-        }
-
-        if let Some(background_color2) = self.background_color2
-            && !background_color2.is_hexcode()
-        {
-            output = format!(
-                "{}  --background-color2 must be hex code, {:?} was provided\n",
-                output, background_color2,
-            );
-            is_valid = false;
-        }
-
-        if let Some(background_color3) = self.background_color3
-            && !background_color3.is_hexcode()
-        {
-            output = format!(
-                "{}  --background-color3 must be hex code, {:?} was provided\n",
-                output, background_color3,
-            );
-            is_valid = false;
-        }
-
-        if let Some(background_color4) = self.background_color4
-            && !background_color4.is_hexcode()
-        {
-            output = format!(
-                "{}  --background-color4 must be hex code, {:?} was provided\n",
-                output, background_color4,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light1_color) = self.light1_color
-            && !light1_color.is_hexcode()
-        {
-            output = format!(
-                "{}  --light1-color must be hex code, {:?} was provided\n",
-                output, light1_color,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light1_x) = self.light1_x
-            && !is_coord_valid(light1_x)
-        {
-            output = format!(
-                "{}  --light1-x must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light1_x,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light1_y) = self.light1_y
-            && !is_coord_valid(light1_y)
-        {
-            output = format!(
-                "{}  --light1-y must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light1_y,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light1_z) = self.light1_z
-            && !is_coord_valid(light1_z)
-        {
-            output = format!(
-                "{}  --light1- must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light1_z,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light2_color) = self.light2_color
-            && !light2_color.is_hexcode()
-        {
-            output = format!(
-                "{}  --light2-color must be hex code, {:?} was provided\n",
-                output, light2_color,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light2_x) = self.light2_x
-            && !is_coord_valid(light2_x)
-        {
-            output = format!(
-                "{}  --light2-x must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light2_x,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light2_y) = self.light2_y
-            && !is_coord_valid(light2_y)
-        {
-            output = format!(
-                "{}  --light2-y must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light2_y,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light2_z) = self.light2_z
-            && !is_coord_valid(light2_z)
-        {
-            output = format!(
-                "{}  --light2-z must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light2_z,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light3_color) = self.light3_color
-            && !light3_color.is_hexcode()
-        {
-            output = format!(
-                "{}  --light3-color must be a hex code, {:?} was provided\n",
-                output, light3_color,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light3_x) = self.light3_x
-            && !is_coord_valid(light3_x)
-        {
-            output = format!(
-                "{}  --light3-x must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light3_x,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light3_y) = self.light3_y
-            && !is_coord_valid(light3_y)
-        {
-            output = format!(
-                "{}  --light3-y must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light3_y,
-            );
-            is_valid = false;
-        }
-
-        if let Some(light3_z) = self.light3_z
-            && !is_coord_valid(light3_z)
-        {
-            output = format!(
-                "{}  --light3-z must be between 0.0 and 1.0, {:?} was provided\n",
-                output, light3_z,
-            );
-            is_valid = false;
-        }
-
         if !is_valid {
             println!("ERROR: there was an error in the parameters provided");
             print!("{}", output);
@@ -402,6 +241,30 @@ impl Args {
     }
 }
 
-fn is_coord_valid(coord: f32) -> bool {
-    coord >= 0.0 && coord <= 1.0
+fn is_coord(s: &str) -> Result<f32, String> {
+    let error_message = "a value between 0.0 and 1.0 must be provided";
+    let coord: f32 = s.parse().map_err(|_| error_message)?;
+    if coord >= 0.0 && coord <= 1.0 {
+        Ok(coord)
+    } else {
+        Err(error_message.to_string())
+    }
+}
+
+fn is_hexcode(s: &str) -> Result<String, String> {
+    if Regex::new(REGEX_PATTERN).unwrap().is_match(s) {
+        Ok(s.to_string())
+    } else {
+        Err("provide a color code like \"#123ABC\"".to_string())
+    }
+}
+
+fn is_valid_transparency(s: &str) -> Result<u32, String> {
+    let error_message = "a value between 0.0 and 1.0 must be provided";
+    let transparency: u32 = s.parse().map_err(|_| error_message)?;
+    if transparency >= 100 {
+        Ok(transparency)
+    } else {
+        Err(error_message.to_string())
+    }
 }
