@@ -31,20 +31,26 @@ fn main() {
 
     apply_arguments(args.clone(), &mut icon_sys);
 
-    print_icon_sys(icon_sys.clone());
-
     std::fs::write(args.file.clone(), icon_sys.to_bytes().unwrap()).unwrap_or_else(|_| {
         println!("ERROR: Unable to save file {:?}", args.file);
         exit(4)
     });
+
+    if args.machine_readable {
+        print_machine_readable_icon_sys(icon_sys.clone());
+    } else {
+        print_icon_sys(icon_sys.clone());
+    }
 }
 
 fn apply_arguments(args: Args, icon_sys: &mut IconSys) {
     if let Some(title1) = args.title1 {
         icon_sys.title_line1 = title1;
+        icon_sys.linebreak_pos = icon_sys.title_line1.len() as u8;
     }
     if let Some(title2) = args.title2 {
         icon_sys.title_line2 = title2;
+        icon_sys.linebreak_pos = icon_sys.title_line1.len() as u8;
     }
 
     if let Some(icon_list) = args.icon_list {
@@ -151,5 +157,28 @@ fn print_icon_sys(sys: IconSys) {
             sys.light_directions[index].y,
             sys.light_directions[index].z
         );
+    }
+}
+fn print_machine_readable_icon_sys(sys: IconSys) {
+    println!("title1: {}", sys.title_line1);
+    println!("title2: {}", sys.title_line2);
+    println!("flags: {:#02X}", sys.flags);
+    println!("icon_list: {}", sys.icon_file);
+    println!("icon_copy: {}", sys.icon_copy_file);
+    println!("icon_delete: {}", sys.icon_delete_file);
+    println!("ambient: {}", sys.ambient_color.to_hex());
+    println!("transparency: {}", sys.background_transparency);
+    for index in 0..4 {
+        println!(
+            "background{}: {}",
+            index + 1,
+            sys.background_colors[index].to_hex(),
+        );
+    }
+    for index in 0..3 {
+        println!("light{}_color: {}", index, sys.light_colors[index].to_hex());
+        println!("light{}_x: {}", index, sys.light_directions[index].x);
+        println!("light{}_y: {}", index, sys.light_directions[index].y);
+        println!("light{}_z: {}", index, sys.light_directions[index].z);
     }
 }

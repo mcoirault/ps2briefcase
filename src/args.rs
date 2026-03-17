@@ -22,6 +22,9 @@ pub(crate) struct Args {
     #[arg(value_name = "FILE", help = "The path to a .sys file")]
     pub(crate) file: String,
 
+    #[arg(long, help = "Returns a machine readable output")]
+    pub(crate) machine_readable: bool,
+
     #[arg(
         long,
         value_name = "STRING",
