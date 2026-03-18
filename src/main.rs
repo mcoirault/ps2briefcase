@@ -23,7 +23,7 @@ fn main() {
                 exit(2);
             }
             icon_sys = new_icon_sys();
-            save_icon_sys(args.file.clone(), icon_sys.clone());
+            save_icon_sys(&args.file, &icon_sys);
             machine_readable_output = args.machine_readable;
         }
         Commands::Edit(args) => {
@@ -31,28 +31,29 @@ fn main() {
                 exit(2);
             }
 
-            icon_sys = open_icon_sys(args.file.clone());
-            apply_arguments(args.clone(), &mut icon_sys);
-            save_icon_sys(args.file.clone(), icon_sys.clone());
+            icon_sys = open_icon_sys(&args.file);
+            apply_arguments(args, &mut icon_sys);
+            save_icon_sys(&args.file, &icon_sys);
             machine_readable_output = args.machine_readable;
         }
         Commands::Show {
             file,
             machine_readable,
         } => {
-            icon_sys = open_icon_sys(file.to_string());
+            icon_sys = open_icon_sys(file);
             machine_readable_output = *machine_readable;
         }
     }
 
     if machine_readable_output {
-        print_machine_readable_icon_sys(icon_sys);
+        print_machine_readable_icon_sys(&icon_sys);
     } else {
-        print_icon_sys(icon_sys);
+        print_icon_sys(&icon_sys);
     }
 }
 
-fn apply_arguments(args: EditArgs, icon_sys: &mut IconSys) {
+fn apply_arguments(edit_args: &EditArgs, icon_sys: &mut IconSys) {
+    let args = edit_args.clone();
     if let Some(title1) = args.title1 {
         icon_sys.title_line1 = title1;
         icon_sys.linebreak_pos = icon_sys.title_line1.len() as u8;
@@ -167,7 +168,7 @@ fn new_icon_sys() -> IconSys {
     }
 }
 
-fn open_icon_sys(file_path: String) -> IconSys {
+fn open_icon_sys(file_path: &String) -> IconSys {
     let file_buffer = std::fs::read(file_path.clone()).unwrap_or_else(|_| {
         println!("ERROR: Unable to read file {:?}", file_path);
         exit(1)
@@ -182,7 +183,7 @@ fn open_icon_sys(file_path: String) -> IconSys {
     IconSys::new(file_buffer)
 }
 
-fn print_icon_sys(sys: IconSys) {
+fn print_icon_sys(sys: &IconSys) {
     println!("Title :");
     println!("{}", sys.title_line1);
     println!("{}", sys.title_line2);
@@ -219,7 +220,7 @@ fn print_icon_sys(sys: IconSys) {
     }
 }
 
-fn print_machine_readable_icon_sys(sys: IconSys) {
+fn print_machine_readable_icon_sys(sys: &IconSys) {
     println!("title1: {}", sys.title_line1);
     println!("title2: {}", sys.title_line2);
     println!("flags: {:#02X}", sys.flags);
@@ -243,7 +244,7 @@ fn print_machine_readable_icon_sys(sys: IconSys) {
     }
 }
 
-fn save_icon_sys(file_path: String, icon_sys: IconSys) {
+fn save_icon_sys(file_path: &String, icon_sys: &IconSys) {
     std::fs::write(file_path.clone(), icon_sys.to_bytes().unwrap()).unwrap_or_else(|_| {
         println!("ERROR: Unable to save file {:?}", file_path);
         exit(4)
