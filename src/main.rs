@@ -1,49 +1,58 @@
 mod args;
 mod hex_colors;
 
+use crate::args::{Commands, EditArgs};
 use crate::hex_colors::HexColors;
-use args::Args;
+use args::Cli;
 use clap::Parser;
-use ps2_filetypes::IconSys;
+use ps2_filetypes::color::Color;
+use ps2_filetypes::{ColorF, IconSys, Vector};
 use std::process::exit;
 
 const MAGIC_BYTES: &[u8; 4] = b"PS2D";
 
 fn main() {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    if !args.clone().validate() {
-        exit(2);
+    let mut icon_sys: IconSys;
+    let machine_readable_output;
+
+    match &cli.command {
+        Commands::Create(args) => {
+            if !args.clone().validate() {
+                exit(2);
+            }
+            icon_sys = new_icon_sys();
+            save_icon_sys(args.file.clone(), icon_sys.clone());
+            machine_readable_output = args.machine_readable;
+        }
+        Commands::Edit(args) => {
+            if !args.clone().validate() {
+                exit(2);
+            }
+
+            icon_sys = open_icon_sys(args.file.clone());
+            apply_arguments(args.clone(), &mut icon_sys);
+            save_icon_sys(args.file.clone(), icon_sys.clone());
+            machine_readable_output = args.machine_readable;
+        }
+        Commands::Show {
+            file,
+            machine_readable,
+        } => {
+            icon_sys = open_icon_sys(file.to_string());
+            machine_readable_output = *machine_readable;
+        }
     }
 
-    let file_buffer = std::fs::read(args.file.clone()).unwrap_or_else(|_| {
-        println!("ERROR: Unable to read file {:?}", args.file);
-        exit(1)
-    });
-
-    // check that this is an actual .sys file related to the PS2
-    if &file_buffer[0..4] != MAGIC_BYTES {
-        println!("ERROR: {} is not a valid PS2 .sys file", args.file);
-        exit(3)
-    }
-
-    let mut icon_sys = IconSys::new(file_buffer);
-
-    apply_arguments(args.clone(), &mut icon_sys);
-
-    std::fs::write(args.file.clone(), icon_sys.to_bytes().unwrap()).unwrap_or_else(|_| {
-        println!("ERROR: Unable to save file {:?}", args.file);
-        exit(4)
-    });
-
-    if args.machine_readable {
-        print_machine_readable_icon_sys(icon_sys.clone());
+    if machine_readable_output {
+        print_machine_readable_icon_sys(icon_sys);
     } else {
-        print_icon_sys(icon_sys.clone());
+        print_icon_sys(icon_sys);
     }
 }
 
-fn apply_arguments(args: Args, icon_sys: &mut IconSys) {
+fn apply_arguments(args: EditArgs, icon_sys: &mut IconSys) {
     if let Some(title1) = args.title1 {
         icon_sys.title_line1 = title1;
         icon_sys.linebreak_pos = icon_sys.title_line1.len() as u8;
@@ -123,6 +132,56 @@ fn apply_arguments(args: Args, icon_sys: &mut IconSys) {
     }
 }
 
+fn new_icon_sys() -> IconSys {
+    let grey_colorf = ColorF {
+        r: 0.5,
+        g: 0.5,
+        b: 0.5,
+        a: 1.0,
+    };
+    let grey_color = Color {
+        r: 128,
+        g: 128,
+        b: 128,
+        a: 255,
+    };
+    let direction = Vector {
+        x: 0.5,
+        y: 0.5,
+        z: 0.5,
+        w: 0.0,
+    };
+    IconSys {
+        flags: 0,
+        linebreak_pos: 11,
+        background_transparency: 25,
+        background_colors: [grey_color, grey_color, grey_color, grey_color],
+        light_directions: [direction, direction, direction],
+        light_colors: [grey_colorf, grey_colorf, grey_colorf],
+        ambient_color: grey_colorf,
+        title_line1: "lorem ipsum".to_string(),
+        title_line2: "dolor sit amet".to_string(),
+        icon_file: "list.icn".to_string(),
+        icon_copy_file: "copy.icn".to_string(),
+        icon_delete_file: "del.icn".to_string(),
+    }
+}
+
+fn open_icon_sys(file_path: String) -> IconSys {
+    let file_buffer = std::fs::read(file_path.clone()).unwrap_or_else(|_| {
+        println!("ERROR: Unable to read file {:?}", file_path);
+        exit(1)
+    });
+
+    // check that this is an actual .sys file related to the PS2
+    if &file_buffer[0..4] != MAGIC_BYTES {
+        println!("ERROR: {:?} is not a valid PS2 .sys file", file_path);
+        exit(3)
+    }
+
+    IconSys::new(file_buffer)
+}
+
 fn print_icon_sys(sys: IconSys) {
     println!("Title :");
     println!("{}", sys.title_line1);
@@ -182,4 +241,11 @@ fn print_machine_readable_icon_sys(sys: IconSys) {
         println!("light{}_y: {}", index, sys.light_directions[index].y);
         println!("light{}_z: {}", index, sys.light_directions[index].z);
     }
+}
+
+fn save_icon_sys(file_path: String, icon_sys: IconSys) {
+    std::fs::write(file_path.clone(), icon_sys.to_bytes().unwrap()).unwrap_or_else(|_| {
+        println!("ERROR: Unable to save file {:?}", file_path);
+        exit(4)
+    });
 }

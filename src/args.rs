@@ -1,5 +1,5 @@
 use crate::hex_colors::REGEX_PATTERN;
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 use regex::Regex;
 
 #[derive(Parser, Debug, Clone)]
@@ -13,18 +13,38 @@ use regex::Regex;
         1 -> <FILE> invalid\n\
         2 -> provided [OPTIONS] failed validation\n\
         3 -> provided <FILE> is not a valid PS2 .sys file\n\
-        4 -> failed to save the <FILE>\n\
-        \n\
-        Example Use: ps2briefcase.exe --title1 \"foo bar\" --transparency 55 --ambient-color \"#123ABC\" --light3-z 0.23 icon.sys\
+        4 -> failed to save the <FILE>\
         ",
     arg_required_else_help(true)
 )]
-pub(crate) struct Args {
-    #[arg(value_name = "FILE", help = "The path to a .sys file")]
-    pub(crate) file: String,
+pub(crate) struct Cli {
+    #[command(subcommand)]
+    pub(crate) command: Commands,
+}
 
+#[derive(Subcommand, Debug, Clone)]
+pub(crate) enum Commands {
+    /// create an icon.sys file from scratch
+    Create(EditArgs),
+    /// modify an existing icon.sys
+    Edit(EditArgs),
+    /// just display the content of an icon.sys
+    Show {
+        #[arg(value_name = "FILE", help = "The path to a .sys file")]
+        file: String,
+
+        #[arg(long, help = "Returns a machine readable output")]
+        machine_readable: bool,
+    },
+}
+
+#[derive(Args, Debug, Clone)]
+pub(crate) struct EditArgs {
     #[arg(long, help = "Returns a machine readable output")]
     pub(crate) machine_readable: bool,
+
+    #[arg(value_name = "FILE", help = "The path to a .sys file")]
+    pub(crate) file: String,
 
     #[arg(
         long,
@@ -206,7 +226,7 @@ pub(crate) struct Args {
     pub(crate) light3_z: Option<f32>,
 }
 
-impl Args {
+impl EditArgs {
     pub fn validate(self) -> bool {
         let mut is_valid: bool = true;
         let mut output: String = "".to_string();
