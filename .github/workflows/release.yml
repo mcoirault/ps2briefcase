@@ -3,8 +3,6 @@ name: Release
 on:
   push:
     branches: [ "test-workflow" ]
-    tags:
-      - '*'
 
 env:
   CARGO_TERM_COLOR: always
@@ -44,3 +42,6 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: target/release/${{matrix.os.executable}}
+          artifactErrorsFailBuild: true
+          draft: true
+          tag: test
