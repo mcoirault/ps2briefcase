@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    branches: [ "test-workflow" ]
+    tags:
+      - '*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{matrix.os.name}}
+    strategy:
+      matrix:
+        os:
+          - name: ubuntu
+            version: ubuntu-latest
+            executable: ps2briefcase
+          - name: macos
+            version: macos-latest
+            executable: ps2briefcase
+          - name: windows
+            version: windows-latest
+            executable: ps2briefcase.exe
+    runs-on: ${{matrix.os.version}}
+    
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+      - run: rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --verbose --release
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: ps2briefcase-${{matrix.os.name}}
+          path: target/release/${{matrix.os.executable}}
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: target/release/${{matrix.os.executable}}
