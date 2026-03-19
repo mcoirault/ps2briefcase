@@ -10,6 +10,8 @@ env:
 jobs:
   build:
     name: Build ${{matrix.os.name}}
+    permissions:
+      contents: write
     strategy:
       matrix:
         os:
