@@ -10,8 +10,6 @@ env:
 jobs:
   build:
     name: Build ${{matrix.os.name}}
-    permissions:
-      contents: write
     strategy:
       matrix:
         os:
@@ -41,9 +39,16 @@ jobs:
         with:
           name: ps2briefcase-${{matrix.os.name}}
           path: target/release/${{matrix.os.executable}}
+  release:
+    name: Release
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ubuntu
+    steps:
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: target/release/${{matrix.os.executable}}
+          artifacts: target/release/*
           artifactErrorsFailBuild: true
           draft: true
           tag: test
