@@ -15,10 +15,10 @@ jobs:
         os:
           - name: ubuntu
             version: ubuntu-latest
-            executable: ps2briefcase-ubuntu
+            executable: ps2briefcase
           - name: macos
             version: macos-latest
-            executable: ps2briefcase-macos
+            executable: ps2briefcase
           - name: windows
             version: windows-latest
             executable: ps2briefcase.exe
