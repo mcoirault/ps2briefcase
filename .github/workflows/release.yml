@@ -15,10 +15,10 @@ jobs:
         os:
           - name: ubuntu
             version: ubuntu-latest
-            executable: ps2briefcase
+            executable: ps2briefcase-ubuntu
           - name: macos
             version: macos-latest
-            executable: ps2briefcase
+            executable: ps2briefcase-macos
           - name: windows
             version: windows-latest
             executable: ps2briefcase.exe
@@ -44,11 +44,12 @@ jobs:
     needs: build
     permissions:
       contents: write
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     steps:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: target/release/*
           artifactErrorsFailBuild: true
+          body: 'this is a draft release'
           draft: true
           tag: test
