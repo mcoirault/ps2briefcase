@@ -38,7 +38,7 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Rename binary
-        run: \[ -f target/release/${{matrix.os.renamed-executable}} ] && mv target/release/${{matrix.os.executable}} target/release/${{matrix.os.renamed-executable}}
+        run: "[ -f target/release/${{matrix.os.renamed-executable}} ] && mv target/release/${{matrix.os.executable}} target/release/${{matrix.os.renamed-executable}}"
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
