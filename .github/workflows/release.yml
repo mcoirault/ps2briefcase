@@ -34,10 +34,15 @@ jobs:
         run: cargo build --verbose --release
       - name: Run tests
         run: cargo test --verbose
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: ps2briefcase-${{matrix.os.name}}
+          path: target/release/${{matrix.os.executable}}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
+          file: target/release/${{matrix.os.executable}}
+          asset_name: ps2briefcase-${{matrix.os.name}}
           tag: test
