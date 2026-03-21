@@ -39,17 +39,10 @@ jobs:
         with:
           name: ps2briefcase-${{matrix.os.name}}
           path: target/release/${{matrix.os.executable}}
-  release:
-    name: Release
-    needs: build
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ncipollo/release-action@v1
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          artifacts: target/release/*
-          artifactErrorsFailBuild: true
-          body: 'this is a draft release'
-          draft: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
           tag: test
