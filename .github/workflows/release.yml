@@ -44,5 +44,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/release/${{matrix.os.executable}}
-          asset_name: ps2briefcase-${{matrix.os.name}}
-          tag: test
+          tag: ${{ github.ref }}
+          overwrite: true
