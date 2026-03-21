@@ -16,15 +16,18 @@ jobs:
           - name: ubuntu
             version: ubuntu-latest
             executable: ps2briefcase
-            renamed-executable: ps2briefcase
+            rename: false
+            binary: ps2briefcase
           - name: macos
             version: macos-latest
             executable: ps2briefcase
-            renamed-executable: ps2briefcase-macos
+            rename: true
+            binary: ps2briefcase-macos
           - name: windows
             version: windows-latest
             executable: ps2briefcase.exe
-            renamed-executable: ps2briefcase.exe
+            rename: false
+            binary: ps2briefcase
     runs-on: ${{matrix.os.version}}
     
     steps:
@@ -38,18 +41,18 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Rename binary
-        run: "[ -f target/release/${{matrix.os.renamed-executable}} ] || mv target/release/${{matrix.os.executable}} target/release/${{matrix.os.renamed-executable}}"
+        run: ${{matrix.os.rename}} && mv target/release/${{matrix.os.executable}} target/release/${{matrix.os.binary}}
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
           name: ps2briefcase-${{matrix.os.name}}
-          path: target/release/${{matrix.os.renamed-executable}}
+          path: target/release/${{matrix.os.binary}}
           if-no-files-found: error
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/${{matrix.os.renamed-executable}}
+          file: target/release/${{matrix.os.binary}}
           tag: ${{ github.ref }}
           overwrite: true
           draft: true
