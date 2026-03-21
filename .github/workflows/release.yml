@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: ps2briefcase-*
+          artifacts: target/release/*
           artifactErrorsFailBuild: true
           body: 'this is a draft release'
           draft: true
